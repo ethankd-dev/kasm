@@ -103,8 +103,6 @@ def run(filename):
         for line in reader:
             linenumber += 1
             line = line.strip()
-            # if reader.tell() == os.fstat(reader.fileno()).st_size:
-            #    end = True
             temp = line.split("#")  # makes '#' into the comment character
             tempstr = temp[0]
             lineargs = tempstr.split()
@@ -115,6 +113,12 @@ def run(filename):
                     mode = 2
                 else:
                     parse(lineargs)
+    index=0
+    for line in memory_lines:
+        if not isdigit(line[4:]):
+            if line[4:] in subprocess_names:
+                memory_lines[index] = line[0:4]+subprocess_names[line[4:]]
+        index+=1
     for i in memory_lines:
         file.write(i)
 
@@ -132,11 +136,130 @@ def parse(lineargs):
             if lineargs[0] in user_defined_tokens:
                 raise Exception(f"Error at line {linenumber}:  Duplicate token.")
             else:
-                # user_defined_tokens[lineargs[0]] = lineargs[1]
                 memalloc(lineargs[0], lineargs[1])
-    #if mode ==2:
+    if mode == 2:
+        match lineargs[0]:
+            case "JMP":
+                jump_type(lineargs[0],lineargs[1])
+            case "JZ":
+                jump_type(lineargs[0], lineargs[1])
+            case "JNZ":
+                jump_type(lineargs[0], lineargs[1])
+            case "JC":
+                jump_type(lineargs[0], lineargs[1])
+            case "JNC":
+                jump_type(lineargs[0], lineargs[1])
+            case "JGT":
+                jump_type(lineargs[0], lineargs[1])
+            case "JLT":
+                jump_type(lineargs[0], lineargs[1])
+            case "JO":
+                jump_type(lineargs[0], lineargs[1])
+            case "JNO":
+                jump_type(lineargs[0], lineargs[1])
+            case "JP":
+                jump_type(lineargs[0], lineargs[1])
+            case "JNP":
+                jump_type(lineargs[0], lineargs[1])
+            case "ADD":
+                two_register(lineargs[0], lineargs[1], lineargs[2])
+            case "SUB":
+                two_register(lineargs[0], lineargs[1], lineargs[2])
+            case "MULT":
+                two_register(lineargs[0], lineargs[1], lineargs[2])
+            case "DIV":
+                two_register(lineargs[0], lineargs[1], lineargs[2])
+            case "AND":
+                two_register(lineargs[0], lineargs[1], lineargs[2])
+            case "OR":
+                two_register(lineargs[0], lineargs[1], lineargs[2])
+            case "XOR":
+                two_register(lineargs[0], lineargs[1], lineargs[2])
+            case "SHL":
+                shifters(lineargs[0], lineargs[1], lineargs[2])
+            case "SHR":
+                shifters(lineargs[0], lineargs[1], lineargs[2])
+            case "ROL":
+                shifters(lineargs[0], lineargs[1], lineargs[2])
+            case "ROR":
+                shifters(lineargs[0], lineargs[1], lineargs[2])
+            case "LOADR":
+                two_register(lineargs[0], lineargs[1], lineargs[2])
+            case "SWAP":
+                two_register(lineargs[0], lineargs[1], lineargs[2])
+            case "CMP":
+                two_register(lineargs[0], lineargs[1], lineargs[2])
+            case "TEST":
+                two_register(lineargs[0], lineargs[1], lineargs[2])
+            case "ADDI":
+                immediate_type(lineargs[0], lineargs[1], lineargs[2])
+            case "SUBI":
+                immediate_type(lineargs[0], lineargs[1], lineargs[2])
+            case "MULTI":
+                immediate_type(lineargs[0], lineargs[1], lineargs[2])
+            case "DIVI":
+                immediate_type(lineargs[0], lineargs[1], lineargs[2])
+            case "LOADI":
+                immediate_type(lineargs[0], lineargs[1], lineargs[2])
+            case "LOADM":
+                two_word_memory_type(lineargs[0], lineargs[1], lineargs[2])
+            case "LOADA":
+                two_word_memory_type(lineargs[0], lineargs[1], lineargs[2])
+            case "STORE":
+                two_word_memory_type(lineargs[0], lineargs[1], lineargs[2])
+            case "CLEAR":
+                one_operand(lineargs[0], lineargs[1])
+            case "NOT":
+                one_operand(lineargs[0], lineargs[1])
+            case "NEG":
+                one_operand(lineargs[0], lineargs[1])
+            case "PUSH":
+                one_operand(lineargs[0], lineargs[1])
+            case "POP":
+                one_operand(lineargs[0], lineargs[1])
+            case "RET":
+                one_operand(lineargs[0], lineargs[1])
+            case "PRINT":
+                one_operand(lineargs[0], lineargs[1])
+            case "SKIPZ":
+                no_operand(lineargs[0])
+            case "SKIPNZ":
+                no_operand(lineargs[0])
+            case "SKIPC":
+                no_operand(lineargs[0])
+            case "SKIPNC":
+                no_operand(lineargs[0])
+            case "SKIPGT":
+                no_operand(lineargs[0])
+            case "SKIPLT":
+                no_operand(lineargs[0])
+            case "SKIPO":
+                no_operand(lineargs[0])
+            case "SKIPNO":
+                no_operand(lineargs[0])
+            case "SKIPP":
+                no_operand(lineargs[0])
+            case "SKIPNP":
+                no_operand(lineargs[0])
+            case "INPUT":
+                no_operand(lineargs[0])
+            case "NOP":
+                no_operand(lineargs[0])
+            case "SYS":
+                no_operand(lineargs[0])
+            case "HALT":
+                no_operand(lineargs[0])
+            case _:
+                if len(lineargs)==1 and lineargs[0][len(lineargs)] == ':':
+                    subprocess_names[lineargs[0][0:len(lineargs)-1]] = get_next_instr_addr()
 
 
+
+def get_next_instr_addr():
+    index=0
+    while instruction_memory:
+        index+=1
+    return format(index, f'0{12}b')
 
     # if mode == 2: #will be used for code section
     # need a way to get the subprocess names at the start here
@@ -146,7 +269,6 @@ def parse(lineargs):
 
 
 def memalloc(token, value):
-    # print(token)
     finalval = ""
 
     if value == "?":
@@ -154,7 +276,7 @@ def memalloc(token, value):
         finalval = to_signed_binary(0)  # Default value as signed 16-bit binary
     elif value.startswith("0x"):  # Hexadecimal value
         finalval = to_signed_binary(int(value, 16))
-    elif value.isdigit() or (value[0] == "-" and value[1:].isdigit()):  # Decimal value
+    elif isdigit(value) or (value[0] == "-" and isdigit(value[1:])):  # Decimal value
         finalval = to_signed_binary(int(value))
     else:
         raise Exception(f"Invalid value format: {value}")
@@ -166,9 +288,8 @@ def memalloc(token, value):
     data_memory[index] = True
     index = index + 2048  # puts it in the data memory zone
     user_defined_tokens[token] = format(index, f'0{12}b')
-    # print(finalval)  # write load and store here instead
-    loadi("R0", value)
-    store("R0", index)
+    immediate_type("LOADI","R0",value)
+    two_word_memory_type("STORE", "R0",index)
 
     return finalval  # Return the final signed binary value
 
@@ -179,84 +300,41 @@ def to_signed_binary(number):
         number = (1 << 16) + number  # Convert to two's complement
     return format(number & 0xFFFF, f'0{16}b')  # Ensure 16-bit binary representation
 
-
-def jmp(op1):
-    if op1 in user_defined_tokens:
-
-        memory_lines.append(k86_tokens["JMP"] + op1)
-    else:
+def jump_type(instruction_code, op1):
+    if isdigit(op1):
         temp = format(op1, f'0{12}b')
-        memory_lines.append(k86_tokens["JMP"] + temp)
-    index = 0
-    while instruction_memory[index]:
-        index += 1
-    instruction_memory[index] = True
-
-
-# def jz(op1):
-
-# def jnz(op1):
-
-# def jc(op1):
-
-# def jnc(op1):
-
-# def jgt(op1):
-
-# def jlt(op1):
-
-# def jo(op1):
-
-# def jno(op1):
-
-# def jp(op1):
-
-# def jnp(op1):
+        memory_lines.append(k86_tokens[instruction_code] + temp)
+    else:
+        memory_lines.append(k86_tokens[instruction_code] + op1)
+    setinstrmem1()
 
 
 # 2 operand
-# def add(op1, op2):
+def two_register(instruction_code,op1,op2): #handles add,sub,mult,div,and,or,xor,loadr,swap,cmp,test
+    if ',' in op1:
+        op1=op1[0:op1.find(',')]
+    if op1 in registers and op2 in registers:
+        memory_lines.append(k86_tokens[instruction_code]+registers[op1]+registers[op2])
+    else:
+        raise Exception(f"Invalid format at line {linenumber}.")
+    setinstrmem1()
 
-# def sub(op1, op2):
+def shifters(instruction_code,op1,op2): #handles shl,shr,rol,ror
+    if ',' in op1:
+        op1=op1[0:op1.find(',')]
+    if op1 in registers and isdigit(op2):
+        memory_lines.append(k86_tokens[instruction_code]+registers[op1]+format(op2, f'0{4}b'))
+    else:
+        raise Exception(f"Invalid format at line {linenumber}.")
+    setinstrmem1()
 
-# def mult(op1, op2):
-
-# def div(op1, op2):
-
-# def and(op1, op2):
-
-# def or(op1, op2):
-
-# def xor(op1, op2):
-
-# def shl(op1, op2):
-
-# def shr(op1, op2):
-
-# def rol(op1, op2):
-
-# def ror(op1, op2):
-
-# def loadr(op1, op2):
-
-# def swap(op1, op2):
-
-# def cmp(op1, op2):
-
-# def test(op1, op2):
 
 # section 3
-# def addi(op1, op2):
-
-# def subi(op1, op2):
-
-# def multi(op1, op2):
-
-# def divi(op1, op2):
-
-def loadi(op1, op2):
+def immediate_type(instruction_code, op1, op2): #handles addi, subi, multi, divi, loadi
+    if ',' in op1:
+        op1=op1[0:op1.find(',')]
     if op1 in registers:
-        memory_lines.append(k86_tokens["LOADI"] + registers[op1] + "\n")
+        memory_lines.append(k86_tokens[instruction_code] + registers[op1] + "\n")
         memory_lines.append(to_signed_binary(op2) + "\n")
     else:
         raise Exception(f"Invalid format at line {linenumber}.")
@@ -266,44 +344,15 @@ def loadi(op1, op2):
     instruction_memory[index] = True
     instruction_memory[index + 1] = True
 
-
-def loadm(op1, op2):
+def two_word_memory_type(instruction_code, op1, op2): #handles loadm, loada, store
+    if ',' in op1:
+        op1=op1[0:op1.find(',')]
     if op1 in registers:
-        memory_lines.append(k86_tokens["LOADM"] + registers[op1] + "\n")
-        if op2 in user_defined_tokens:
-            memory_lines.append(user_defined_tokens[op2] + "\n")
+        memory_lines.append(k86_tokens[instruction_code] + registers[op1] + "\n")
+        if isdigit(op2):
+            memory_lines.append("0000"+format(op2, f'0{12}b')+ "\n")
         else:
-            memory_lines.append(to_signed_binary(op2) + "\n")
-        index = 0
-        while instruction_memory[index]:
-            index += 1
-        instruction_memory[index] = True
-        instruction_memory[index + 1] = True
-    else:
-        raise Exception(f"Invalid format at line {linenumber}.")
-
-def loada(op1, op2):
-    if op1 in registers:
-        memory_lines.append(k86_tokens["LOADA"] + registers[op1] + "\n")
-        if op2 in user_defined_tokens:
-            memory_lines.append(user_defined_tokens[op2] + "\n")
-        else:
-            memory_lines.append(to_signed_binary(op2) + "\n")
-        index = 0
-        while instruction_memory[index]:
-            index += 1
-        instruction_memory[index] = True
-        instruction_memory[index + 1] = True
-    else:
-        raise Exception(f"Invalid format at line {linenumber}.")
-
-def store(op1, op2):
-    if op1 in registers:
-        memory_lines.append(k86_tokens["STORE"] + registers[op1] + "\n")
-        if op2 in user_defined_tokens:
-            memory_lines.append(user_defined_tokens[op2] + "\n")
-        else:
-            memory_lines.append(to_signed_binary(op2) + "\n")
+            memory_lines.append("0000"+ op2 + "\n")
         index = 0
         while instruction_memory[index]:
             index += 1
@@ -313,126 +362,19 @@ def store(op1, op2):
         raise Exception(f"Invalid format at line {linenumber}.")
 
 
-def clear(op1):
+def one_operand(instruction_code, op1): #handles clear, not, neg, push, pop, ret, and print
     if op1 in registers:
-        memory_lines.append(k86_tokens["CLEAR"]+registers[op1])
+        memory_lines.append(k86_tokens[instruction_code]+registers[op1])
         setinstrmem1()
     else:
         raise Exception(f"Invalid format at line {linenumber}.")
-
-def notinst(op1):
-    if op1 in registers:
-        memory_lines.append(k86_tokens["NOT"]+registers[op1])
-        setinstrmem1()
-    else:
-        raise Exception(f"Invalid format at line {linenumber}.")
-
-def neg(op1):
-    if op1 in registers:
-        memory_lines.append(k86_tokens["NEG"]+registers[op1])
-        setinstrmem1()
-    else:
-        raise Exception(f"Invalid format at line {linenumber}.")
-
-def push(op1):
-    if op1 in registers:
-        memory_lines.append(k86_tokens["PUSH"]+registers[op1])
-        setinstrmem1()
-    else:
-        raise Exception(f"Invalid format at line {linenumber}.")
-
-def pop(op1):
-    if op1 in registers:
-        memory_lines.append(k86_tokens["POP"]+registers[op1])
-        setinstrmem1()
-    else:
-        raise Exception(f"Invalid format at line {linenumber}.")
-
-def ret(op1):
-    if op1 in registers:
-        memory_lines.append(k86_tokens["RET"]+registers[op1])
-        setinstrmem1()
-    else:
-        raise Exception(f"Invalid format at line {linenumber}.")
-
-def print(op1):
-    if op1 in registers:
-        memory_lines.append(k86_tokens["PRINT"]+registers[op1])
-        setinstrmem1()
-    else:
-        raise Exception(f"Invalid format at line {linenumber}.")
-
 
 
 # section 4
-def skipz():
-    memory_lines.append(k86_tokens["SKIPZ"])
+def no_operand(instruction_code): #handles the skips, input, nop, sys, halt
+    memory_lines.append(k86_tokens[instruction_code])
     setinstrmem1()
 
-
-def skipnz():
-    memory_lines.append(k86_tokens["SKIPNZ"])
-    setinstrmem1()
-
-
-def skipc():
-    memory_lines.append(k86_tokens["SKIP"])
-    setinstrmem1()
-
-
-def skipnc():
-    memory_lines.append(k86_tokens["SKIPNC"])
-    setinstrmem1()
-
-
-def skipgt():
-    memory_lines.append(k86_tokens["SKIPGT"])
-    setinstrmem1()
-
-
-def skiplt():
-    memory_lines.append(k86_tokens["SKIPLT"])
-    setinstrmem1()
-
-
-def skipo():
-    memory_lines.append(k86_tokens["SKIPO"])
-    setinstrmem1()
-
-
-def skipno():
-    memory_lines.append(k86_tokens["SKIPNO"])
-    setinstrmem1()
-
-
-def skipp():
-    memory_lines.append(k86_tokens["SKIPP"])
-    setinstrmem1()
-
-
-def skipnp():
-    memory_lines.append(k86_tokens["SKIPNP"])
-    setinstrmem1()
-
-
-def inputms():
-    memory_lines.append(k86_tokens["INPUT"])
-    setinstrmem1()
-
-
-def nop():
-    memory_lines.append(k86_tokens["NOP"])
-    setinstrmem1()
-
-
-def syscall():
-    memory_lines.append(k86_tokens["SYS"])
-    setinstrmem1()
-
-
-def halt():
-    memory_lines.append(k86_tokens["HALT"])
-    setinstrmem1()
 
 
 def setinstrmem1():
@@ -440,7 +382,12 @@ def setinstrmem1():
     while instruction_memory[index]:
         index += 1
     instruction_memory[index] = True
-
+def isdigit(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
 
 def main():
     if len(sys.argv) != 2:  # Check if arguments were passed

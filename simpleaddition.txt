@@ -7,7 +7,7 @@ LOADA R1, num       # Load memory address of num into R1:   R1 = num (memory add
 
 LOADR R2, R1        # Load data from memory address stored in R1 into R2:   R2 = memory[R1]
 
-CMP R2, 10          # Compare R2 with 10
+CMP R2, R2          # Compare R2 with 10
 
 JGT GREATER         # Jump to GREATER if R2 > 10
 LOADI R3, 0         # R3 = 0 (if R2 <= 10)
