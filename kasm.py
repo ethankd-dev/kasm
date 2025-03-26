@@ -293,7 +293,7 @@ def get_next_instr_addr():
         index+=1
     return format(index, f'0{12}b')
 
-
+# Allocates memory for the variables in the data section
 def memalloc(token, value):
     finalval = ""
 
