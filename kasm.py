@@ -1,5 +1,5 @@
-import os
-import decimal
+#     KASM Version 1
+#     WM-6 AdvCompArch
 import sys
 
 line = ""
@@ -9,7 +9,9 @@ mode = 0
 instruction_memory = [False] * 2048  # keeps track of if a memory location is assigned to something else
 memory_lines = []
 data_memory = [False] * 1024
-subprocess_names = []
+subprocess_names = {
+
+}
 file = open("output.bin", "w")
 user_defined_tokens = {
 
@@ -113,14 +115,21 @@ def run(filename):
                     mode = 2
                 else:
                     parse(lineargs)
-    index=0
+
+    for token in subprocess_names:
+        print(token+":"+subprocess_names[token])
+    for token in user_defined_tokens:
+        print(token+":"+user_defined_tokens[token])
+    index = 0
     for line in memory_lines:
         if not isdigit(line[4:]):
             if line[4:] in subprocess_names:
                 memory_lines[index] = line[0:4]+subprocess_names[line[4:]]
+            elif line[4:] in user_defined_tokens:
+                memory_lines[index] = line[0:4]+user_defined_tokens[line[4:]]
         index+=1
     for i in memory_lines:
-        file.write(i)
+        file.write(i+"\n")
 
 
 def parse(lineargs):
@@ -250,14 +259,18 @@ def parse(lineargs):
             case "HALT":
                 no_operand(lineargs[0])
             case _:
-                if len(lineargs)==1 and lineargs[0][len(lineargs)] == ':':
-                    subprocess_names[lineargs[0][0:len(lineargs)-1]] = get_next_instr_addr()
+                print("entered")
+                temp = lineargs[0]
+                length =len(temp)
+                if len(lineargs)==1 and temp[length-1] == ':':
+                    temp=temp[0:length-1]
+                    subprocess_names[""+temp] = get_next_instr_addr()
 
 
 
 def get_next_instr_addr():
     index=0
-    while instruction_memory:
+    while instruction_memory[index]:
         index+=1
     return format(index, f'0{12}b')
 
@@ -334,8 +347,8 @@ def immediate_type(instruction_code, op1, op2): #handles addi, subi, multi, divi
     if ',' in op1:
         op1=op1[0:op1.find(',')]
     if op1 in registers:
-        memory_lines.append(k86_tokens[instruction_code] + registers[op1] + "\n")
-        memory_lines.append(to_signed_binary(op2) + "\n")
+        memory_lines.append(k86_tokens[instruction_code] + registers[op1])
+        memory_lines.append(to_signed_binary(op2))
     else:
         raise Exception(f"Invalid format at line {linenumber}.")
     index = 0
@@ -348,11 +361,11 @@ def two_word_memory_type(instruction_code, op1, op2): #handles loadm, loada, sto
     if ',' in op1:
         op1=op1[0:op1.find(',')]
     if op1 in registers:
-        memory_lines.append(k86_tokens[instruction_code] + registers[op1] + "\n")
+        memory_lines.append(k86_tokens[instruction_code] + registers[op1] )
         if isdigit(op2):
-            memory_lines.append("0000"+format(op2, f'0{12}b')+ "\n")
+            memory_lines.append("0000"+format(op2, f'0{12}b'))
         else:
-            memory_lines.append("0000"+ op2 + "\n")
+            memory_lines.append("0000"+ op2 )
         index = 0
         while instruction_memory[index]:
             index += 1
