@@ -10,6 +10,7 @@ data_memory_size = 1024
 line = ""
 linenumber = 0
 mode = 0
+filename = ""
 
 # Keeps track of if a memory location is assigned to something
 instruction_memory = [False] * instruction_memory_size
@@ -107,18 +108,20 @@ registers = {
 
 }
 
-def run(filename):
+
+def run():
     global line
+    global filename
     global linenumber
     global mode
     with open(filename, "r") as reader:
         for line in reader:
             linenumber += 1
-            line = line.strip() # Removes whitespace surrounding line
+            line = line.strip()  # Removes whitespace surrounding line
             temp = line.split("#")  # makes '#' into the comment character
             tempstr = temp[0]
             lineargs = tempstr.split()
-            if len(lineargs) > 0: # this if statement just makes sure to skip all empty lines
+            if len(lineargs) > 0:  # this if statement just makes sure to skip all empty lines
 
                 # parse statement can do multiple things depending on if it's in the .data or
                 # .code section, so this changes it if a new section appears, otherwise parses the line
@@ -135,15 +138,22 @@ def run(filename):
     for line in memory_lines:
         if not isdigit(line[4:]):
             if line[4:] in subprocess_names:
-                memory_lines[index] = line[0:4]+subprocess_names[line[4:]]
+                memory_lines[index] = line[0:4] + subprocess_names[line[4:]]
             elif line[4:] in user_defined_tokens:
-                memory_lines[index] = line[0:4]+user_defined_tokens[line[4:]]
+                memory_lines[index] = line[0:4] + user_defined_tokens[line[4:]]
             else:
-                raise Exception(f"Undefined token at line {linenumber}")
-        index+=1
-    file = open("output.bin", "w")
+                sys.exit(f"Undefined token at line {linenumber}")
+        index += 1
+    fileparts = filename.split('.')
+    filename =fileparts[0]
+    file = open(f"{filename}.bin", "w")
     for i in memory_lines:
-        file.write(i+"\n")
+        file.write(i + "\n")
+
+        # if there's no halt command, the program will run forever, since 16
+        # zeros is technically an instruction
+    if "1111111111111111" not in memory_lines:
+        file.write("1111111111111111\n")
 
 
 def parse(lineargs):
@@ -152,22 +162,23 @@ def parse(lineargs):
     # Mode 1 is the .data section, is used for defining variable names
     if mode == 1:
         if len(lineargs) != 2:
-            raise Exception(
+            sys.exit(
                 f"Error at line {linenumber}:  Variable declarations in the .data section must be 2 arguments: a "
                 f"token and a value.")
         else:
             if lineargs[0] in k86_tokens or lineargs[0] in registers:
-                raise Exception(f"Error at line {linenumber}:  Provided token is a K86 token.")
+                sys.exit(f"Error at line {linenumber}:  Provided token is a K86 token.")
             if lineargs[0] in user_defined_tokens:
-                raise Exception(f"Error at line {linenumber}:  Duplicate token.")
+                sys.exit(f"Error at line {linenumber}:  Duplicate token.")
             else:
                 memalloc(lineargs[0], lineargs[1])
 
-    # Mode 2 is the .code section, mostly made of one switch statement which decides how to process each line in the code section
+    # Mode 2 is the .code section, mostly made of one switch statement
+    # which decides how to process each line in the code section
     if mode == 2:
         match lineargs[0]:
             case "JMP":
-                jump_type(lineargs[0],lineargs[1])
+                jump_type(lineargs[0], lineargs[1])
             case "JZ":
                 jump_type(lineargs[0], lineargs[1])
             case "JNZ":
@@ -276,22 +287,24 @@ def parse(lineargs):
                 no_operand(lineargs[0])
             case "HALT":
                 no_operand(lineargs[0])
-            case _: # This case handles the subprocess names
+            case _:  # This case handles the subprocess names
                 temp = lineargs[0]
-                length =len(temp)
-                if len(lineargs)==1 and temp[length-1] == ':':
-                    temp=temp[0:length-1]
+                length = len(temp)
+                if len(lineargs) == 1 and temp[length - 1] == ':':
+                    temp = temp[0:length - 1]
                     subprocess_names[temp] = get_next_instr_addr()
                 else:
-                    raise Exception(f"Unexpected token at line {linenumber}")
+                    sys.exit(f"Unexpected token at line {linenumber}")
+
 
 # Only being used by the subprocess handler above.
 # it fetches the next unused instruction address without actually assigning it
 def get_next_instr_addr():
-    index=0
+    index = 0
     while instruction_memory[index]:
-        index+=1
+        index += 1
     return format(index, f'0{12}b')
+
 
 # Allocates memory for the variables in the data section
 def memalloc(token, value):
@@ -310,21 +323,22 @@ def memalloc(token, value):
     elif isdigit(value) or (value[0] == "-" and isdigit(value[1:])):
         finalval = to_signed_binary(int(value))
     else:
-        raise Exception(f"Invalid value format: {value}")
+        sys.exit(f"Invalid value format: {value}")
 
     # Allocates memory for whatever variable it's processing
     index = 0
     while data_memory[index]:
         index += 1
         if index >= data_memory_size:
-            raise Exception("Out of data memory!")
+            sys.exit("Out of data memory!")
     data_memory[index] = True
     index = index + instruction_memory_size  # puts it in the data memory zone
 
     # Adds the variable to the user defined tokens, then creates load and store instructions for that value
     user_defined_tokens[token] = format(index, f'0{12}b')
-    immediate_type("LOADI","R0",value)
-    two_word_memory_type("STORE", "R0",index)
+    immediate_type("LOADI", "R0", value)
+    two_word_memory_type("STORE", "R0", index)
+
 
 # Converts the input number to a signed binary value
 def to_signed_binary(number):
@@ -332,6 +346,7 @@ def to_signed_binary(number):
     if number < 0:
         number = (1 << 16) + number  # Convert to two's complement
     return format(number & 0xFFFF, f'0{16}b')
+
 
 # ISA Section 1
 # Handles all the jump instructions
@@ -346,23 +361,24 @@ def jump_type(instruction_code, op1):
 
 # ISA Section 2
 # Handles add, sub, mult, div, and, or, xor, loadr, swap, cmp, test
-def two_register(instruction_code,op1,op2):
+def two_register(instruction_code, op1, op2):
     if ',' in op1:
-        op1=op1[0:op1.find(',')]
+        op1 = op1[0:op1.find(',')]
     if op1 in registers and op2 in registers:
-        memory_lines.append(k86_tokens[instruction_code]+registers[op1]+registers[op2])
+        memory_lines.append(k86_tokens[instruction_code] + registers[op1] + registers[op2])
     else:
-        raise Exception(f"Invalid format at line {linenumber}.")
+        sys.exit(f"Invalid format at line {linenumber}.")
     setinstrmem1()
 
+
 # Handles shl, shr, rol, ror
-def shifters(instruction_code,op1,op2):
+def shifters(instruction_code, op1, op2):
     if ',' in op1:
-        op1=op1[0:op1.find(',')]
+        op1 = op1[0:op1.find(',')]
     if op1 in registers and isdigit(op2):
-        memory_lines.append(k86_tokens[instruction_code]+registers[op1]+format(op2, f'0{4}b'))
+        memory_lines.append(k86_tokens[instruction_code] + registers[op1] + format(op2, f'0{4}b'))
     else:
-        raise Exception(f"Invalid format at line {linenumber}.")
+        sys.exit(f"Invalid format at line {linenumber}.")
     setinstrmem1()
 
 
@@ -370,43 +386,45 @@ def shifters(instruction_code,op1,op2):
 # Handles addi, subi, multi, divi, loadi
 def immediate_type(instruction_code, op1, op2):
     if ',' in op1:
-        op1=op1[0:op1.find(',')]
+        op1 = op1[0:op1.find(',')]
     if op1 in registers:
         memory_lines.append(k86_tokens[instruction_code] + registers[op1])
         memory_lines.append(to_signed_binary(op2))
     else:
-        raise Exception(f"Invalid format at line {linenumber}.")
+        sys.exit(f"Invalid format at line {linenumber}.")
     index = 0
     while instruction_memory[index]:
         index += 1
     instruction_memory[index] = True
     instruction_memory[index + 1] = True
 
+
 # Handles loadm, loada, store
 def two_word_memory_type(instruction_code, op1, op2):
     if ',' in op1:
-        op1=op1[0:op1.find(',')]
+        op1 = op1[0:op1.find(',')]
     if op1 in registers:
-        memory_lines.append(k86_tokens[instruction_code] + registers[op1] )
+        memory_lines.append(k86_tokens[instruction_code] + registers[op1])
         if isdigit(op2):
-            memory_lines.append("0000"+format(op2, f'0{12}b'))
+            memory_lines.append("0000" + format(op2, f'0{12}b'))
         else:
-            memory_lines.append("0000"+ op2 )
+            memory_lines.append("0000" + op2)
         index = 0
         while instruction_memory[index]:
             index += 1
         instruction_memory[index] = True
         instruction_memory[index + 1] = True
     else:
-        raise Exception(f"Invalid format at line {linenumber}.")
+        sys.exit(f"Invalid format at line {linenumber}.")
+
 
 # Handles clear, not, neg, push, pop, ret, and print
 def one_operand(instruction_code, op1):
     if op1 in registers:
-        memory_lines.append(k86_tokens[instruction_code]+registers[op1])
+        memory_lines.append(k86_tokens[instruction_code] + registers[op1])
         setinstrmem1()
     else:
-        raise Exception(f"Invalid format at line {linenumber}.")
+        sys.exit(f"Invalid format at line {linenumber}.")
 
 
 # ISA Section 4
@@ -423,6 +441,7 @@ def setinstrmem1():
         index += 1
     instruction_memory[index] = True
 
+
 # Method for checking if a string is made of numbers only
 def isdigit(s):
     try:
@@ -431,12 +450,19 @@ def isdigit(s):
     except ValueError:
         return False
 
+
 # Main, just checking the usage is right and then running
 def main():
+    global filename
     if len(sys.argv) != 2:  # Check if arguments were passed
-        print(f"Usage: kasm [file name]")
+        sys.exit("Usage: kasm.py [file name]")
     else:
-        run(sys.argv[1])
+        filename = sys.argv[1]
+        temp = filename.split('.')
+        if temp[1] == "k86":
+            run()
+        else:
+            sys.exit("KASM can only process .k86 files!")
 
 
 if __name__ == "__main__":
