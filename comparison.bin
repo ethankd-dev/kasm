@@ -1,0 +1,30 @@
+                    # Start of the .data segment, .data loads and stores with R0 by default
+1111111101000000    # num1 -12          load of the first var, num.
+1111111111110100    #                   Immediate for num1, -12
+1111111101110000    #                   Store from R0
+0000100000000000    #                   Memory address for num. because the data starts at address 2048, this is the first spot there
+1111111101000000    # num2 15           Load into R0 for second variable, num2
+0000000000001111    #                   Immediate for num1, 15
+1111111101110000    #                   Stores from R0
+0000100000000001    #                   Memory address for num2, second spot of the data memory segment, 2049
+1111111101000000    # result ?          Load into R0 for third variable, result
+0000000000000000    #                   Because result is a ?, the immediate value is just a 0
+1111111101110000    #                   Stores from R0
+0000100000000010    #                   Memory address for result, third spot of the data memory segment, 2050
+
+                    # Start of the .code segment
+1111111101010001    # LOADM R1, num1    loads a value, num1, from memory into R1
+0000100000000000    #                   Address of num1
+1111111101010010    # LOADM R2, num2    Loads a value, num2, from memory into R2
+0000100000000001    #                   Address of num2
+1111110100010010    # CMP R1, R2        compares the two registers
+0101000000010101    # JGT GREATER       jumps to greater if R1 is greater than R2 (the address '000000010000' or 16 looks wrong here because lines start at 1 in notepad, but it is correct)
+1111111101000011    # LOADI R3, 0       Loads an immediate, 0 into R3 (only happens if it was <= R2)
+0000000000000000    #                   Immediate for the LOADI is 0 in this case
+0000000000010111    # JMP DONE          Jumps to DONE (same thing for this address, '000000010010' is 18, which is correct because its the 19th line)
+1111111101000011    # LOADI R3, 1       Start of the GREATER subprocess, Loads an immediate, 1 into R3
+0000000000000001    #                   Immediate for the LOADI in this case is 1
+1111111101110011    # STORE R3, result  Start of DONE, STORE
+0000100000000010    #                   Memory address of result
+1111111111100011    # PRINT R3          sends the data in R3 to multisim 7 segment display
+1111111111111111    # HALT              ends the program
