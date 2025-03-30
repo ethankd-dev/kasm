@@ -1,5 +1,7 @@
 #     KASM Version 1
 #     WM-6 AdvCompArch
+
+ 
 import sys
 
 # Memory sizes
@@ -151,7 +153,7 @@ def run():
         file.write(i + "\n")
 
         # if there's no halt command, the program will run forever, since 16
-        # zeros is technically an instruction
+        # zeros is technically an instruction, this adds a halt at the end in case
     if "1111111111111111" not in memory_lines:
         file.write("1111111111111111\n")
 

@@ -1,0 +1,20 @@
+.data
+num 5
+fact ?
+
+.code
+LOADM R1, num  # Load num into R1
+LOADI R2, 1    # R2 will store the factorial, initialize to 1
+
+FACTORIAL_LOOP:
+    CMP R1, R0  # If R1 == 0, we're done
+    JZ DONE
+
+    MULT R2, R1 # R2 *= R1
+    SUBI R1, 1  # R1 -= 1
+    JMP FACTORIAL_LOOP
+
+DONE:
+    STORE R2, fact
+    PRINT R2
+    HALT
