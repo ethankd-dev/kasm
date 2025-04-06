@@ -31,7 +31,7 @@ subprocess_names = {}
 # Variable names
 user_defined_tokens = {}
 
-# Dictionary of al the K86 instruction codes
+# Dictionary of all the K86 instruction codes
 k86_tokens = {
     "JMP": "0000",
     "JZ": "0001",
@@ -178,116 +178,171 @@ def parse(lineargs):
     # Mode 2 is the .code section, mostly made of one switch statement
     # which decides how to process each line in the code section
     if mode == 2:
-        match lineargs[0]:
+        match lineargs[0]: # Ugliest part of the code
             case "JMP":
+                if len(lineargs) != 2: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 jump_type(lineargs[0], lineargs[1])
             case "JZ":
+                if len(lineargs) != 2: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 jump_type(lineargs[0], lineargs[1])
             case "JNZ":
+                if len(lineargs) != 2: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 jump_type(lineargs[0], lineargs[1])
             case "JC":
+                if len(lineargs) != 2: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 jump_type(lineargs[0], lineargs[1])
             case "JNC":
+                if len(lineargs) != 2: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 jump_type(lineargs[0], lineargs[1])
             case "JGT":
+                if len(lineargs) != 2: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 jump_type(lineargs[0], lineargs[1])
             case "JLT":
+                if len(lineargs) != 2: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 jump_type(lineargs[0], lineargs[1])
             case "JO":
+                if len(lineargs) != 2: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 jump_type(lineargs[0], lineargs[1])
             case "JNO":
+                if len(lineargs) != 2: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 jump_type(lineargs[0], lineargs[1])
             case "JP":
+                if len(lineargs) != 2: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 jump_type(lineargs[0], lineargs[1])
             case "JNP":
+                if len(lineargs) != 2: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 jump_type(lineargs[0], lineargs[1])
             case "ADD":
+                if len(lineargs) != 3: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 two_register(lineargs[0], lineargs[1], lineargs[2])
             case "SUB":
+                if len(lineargs) != 3: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 two_register(lineargs[0], lineargs[1], lineargs[2])
             case "MULT":
+                if len(lineargs) != 3: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 two_register(lineargs[0], lineargs[1], lineargs[2])
             case "DIV":
+                if len(lineargs) != 3: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 two_register(lineargs[0], lineargs[1], lineargs[2])
             case "AND":
+                if len(lineargs) != 3: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 two_register(lineargs[0], lineargs[1], lineargs[2])
             case "OR":
+                if len(lineargs) != 3: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 two_register(lineargs[0], lineargs[1], lineargs[2])
             case "XOR":
+                if len(lineargs) != 3: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 two_register(lineargs[0], lineargs[1], lineargs[2])
             case "SHL":
+                if len(lineargs) != 3: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 shifters(lineargs[0], lineargs[1], lineargs[2])
             case "SHR":
+                if len(lineargs) != 3: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 shifters(lineargs[0], lineargs[1], lineargs[2])
             case "ROL":
+                if len(lineargs) != 3: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 shifters(lineargs[0], lineargs[1], lineargs[2])
             case "ROR":
+                if len(lineargs) != 3: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 shifters(lineargs[0], lineargs[1], lineargs[2])
             case "LOADR":
+                if len(lineargs) != 3: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 two_register(lineargs[0], lineargs[1], lineargs[2])
             case "SWAP":
+                if len(lineargs) != 3: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 two_register(lineargs[0], lineargs[1], lineargs[2])
             case "CMP":
+                if len(lineargs) != 3: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 two_register(lineargs[0], lineargs[1], lineargs[2])
             case "TEST":
+                if len(lineargs) != 3: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 two_register(lineargs[0], lineargs[1], lineargs[2])
             case "ADDI":
+                if len(lineargs) != 3: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 immediate_type(lineargs[0], lineargs[1], lineargs[2])
             case "SUBI":
+                if len(lineargs) != 3: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 immediate_type(lineargs[0], lineargs[1], lineargs[2])
             case "MULTI":
+                if len(lineargs) != 3: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 immediate_type(lineargs[0], lineargs[1], lineargs[2])
             case "DIVI":
+                if len(lineargs) != 3: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 immediate_type(lineargs[0], lineargs[1], lineargs[2])
             case "LOADI":
+                if len(lineargs) != 3: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 immediate_type(lineargs[0], lineargs[1], lineargs[2])
             case "LOADM":
+                if len(lineargs) != 3: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 two_word_memory_type(lineargs[0], lineargs[1], lineargs[2])
             case "LOADA":
+                if len(lineargs) != 3: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 two_word_memory_type(lineargs[0], lineargs[1], lineargs[2])
             case "STORE":
+                if len(lineargs) != 3: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 two_word_memory_type(lineargs[0], lineargs[1], lineargs[2])
             case "CLEAR":
+                if len(lineargs) != 2: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 one_operand(lineargs[0], lineargs[1])
             case "NOT":
+                if len(lineargs) != 2: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 one_operand(lineargs[0], lineargs[1])
             case "NEG":
+                if len(lineargs) != 2: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 one_operand(lineargs[0], lineargs[1])
             case "PUSH":
+                if len(lineargs) != 2: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 one_operand(lineargs[0], lineargs[1])
             case "POP":
+                if len(lineargs) != 2: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 one_operand(lineargs[0], lineargs[1])
             case "RET":
+                if len(lineargs) != 2: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 one_operand(lineargs[0], lineargs[1])
             case "PRINT":
+                if len(lineargs) != 2: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 one_operand(lineargs[0], lineargs[1])
             case "SKIPZ":
+                if len(lineargs) != 1: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 no_operand(lineargs[0])
             case "SKIPNZ":
+                if len(lineargs) != 1: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 no_operand(lineargs[0])
             case "SKIPC":
+                if len(lineargs) != 1: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 no_operand(lineargs[0])
             case "SKIPNC":
+                if len(lineargs) != 1: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 no_operand(lineargs[0])
             case "SKIPGT":
+                if len(lineargs) != 1: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 no_operand(lineargs[0])
             case "SKIPLT":
+                if len(lineargs) != 1: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 no_operand(lineargs[0])
             case "SKIPO":
+                if len(lineargs) != 1: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 no_operand(lineargs[0])
             case "SKIPNO":
+                if len(lineargs) != 1: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 no_operand(lineargs[0])
             case "SKIPP":
+                if len(lineargs) != 1: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 no_operand(lineargs[0])
             case "SKIPNP":
+                if len(lineargs) != 1: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 no_operand(lineargs[0])
             case "INPUT":
+                if len(lineargs) != 1: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 no_operand(lineargs[0])
             case "NOP":
+                if len(lineargs) != 1: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 no_operand(lineargs[0])
             case "SYS":
+                if len(lineargs) != 1: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 no_operand(lineargs[0])
             case "HALT":
+                if len(lineargs) != 1: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 no_operand(lineargs[0])
             case _:  # This case handles the subprocess names
                 temp = lineargs[0]

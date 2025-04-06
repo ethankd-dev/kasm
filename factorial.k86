@@ -2,7 +2,7 @@
 fact ?
 
 .code
-INPUT R1        # Loads a user input into R1
+INPUT           # Loads a user input into R1
 LOADI R2, 1     # R2 will store the factorial, initialize to 1
 
 FACTORIAL_LOOP:
