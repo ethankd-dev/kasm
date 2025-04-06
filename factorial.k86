@@ -1,10 +1,9 @@
 .data
-num 5
 fact ?
 
 .code
-LOADM R1, num  # Load num into R1
-LOADI R2, 1    # R2 will store the factorial, initialize to 1
+INPUT R1        # Loads a user input into R1
+LOADI R2, 1     # R2 will store the factorial, initialize to 1
 
 FACTORIAL_LOOP:
     CMP R1, R0  # If R1 == 0, we're done
