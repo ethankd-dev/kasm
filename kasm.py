@@ -72,7 +72,6 @@ k86_tokens = {
     "NEG": "111111111010",
     "PUSH": "111111111011",
     "POP": "111111111100",
-    "RET": "111111111101",
     "PRINT": "111111111110",
     "SKIPZ": "1111111111110000",
     "SKIPNZ": "1111111111110001",
@@ -84,6 +83,8 @@ k86_tokens = {
     "SKIPNO": "1111111111110111",
     "SKIPP": "1111111111111000",
     "SKIPNP": "1111111111111001",
+    "PUSHPC": "1111111111111010",
+    "RET": "1111111111111011",
     "INPUT": "1111111111111100",
     "NOP": "1111111111111101",
     "SYS": "1111111111111110",
@@ -296,9 +297,6 @@ def parse(lineargs):
             case "POP":
                 if len(lineargs) != 2: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 one_operand(lineargs[0], lineargs[1])
-            case "RET":
-                if len(lineargs) != 2: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
-                one_operand(lineargs[0], lineargs[1])
             case "PRINT":
                 if len(lineargs) != 2: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 one_operand(lineargs[0], lineargs[1])
@@ -330,6 +328,12 @@ def parse(lineargs):
                 if len(lineargs) != 1: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 no_operand(lineargs[0])
             case "SKIPNP":
+                if len(lineargs) != 1: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
+                no_operand(lineargs[0])
+            case "PUSHPC":
+                if len(lineargs) != 1: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
+                no_operand(lineargs[0])
+            case "RET":
                 if len(lineargs) != 1: sys.exit(f"Error at line {linenumber}: Invalid instruction syntax.")
                 no_operand(lineargs[0])
             case "INPUT":

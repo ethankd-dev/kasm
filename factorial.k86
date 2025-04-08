@@ -2,8 +2,9 @@
 fact ?
 
 .code
-INPUT           # Loads a user input into R1
-LOADI R2, 1     # R2 will store the factorial, initialize to 1
+INPUT           # Loads a user input into R0
+SWAP R0, R1     # puts 0 in R0, and the input in R1
+LOADI R2, 1     # R1 will store the factorial, initialize to 1
 
 FACTORIAL_LOOP:
     CMP R1, R0  # If R1 == 0, we're done
@@ -17,3 +18,5 @@ DONE:
     STORE R2, fact
     PRINT R2
     HALT
+
+
